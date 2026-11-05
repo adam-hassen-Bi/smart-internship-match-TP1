@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Pipeline sanity check</title>
+<style>body{font-family:system-ui,sans-serif;max-width:1000px;margin:2rem auto;padding:0 1rem}pre{background:#f4f3ef;padding:1rem;border-radius:8px;overflow:auto;font-size:12px}a.go{display:inline-block;margin:.5rem 0 1rem;font-weight:600}</style></head>
+<body>
+  <h1>Pipeline sanity check — not my dashboard</h1>
+  <p>This page only confirms that the pipeline produced real, well-formed data. The decision dashboard is a separate page:</p>
+  <a class="go" href="dashboard.html">→ Open the dashboard</a>
+  <pre id="out">Loading...</pre>
+<script>
+fetch('data/matches.json')
+  .then(r => r.json())
+  .then(data => { document.getElementById('out').textContent = JSON.stringify(data, null, 2); })
+  .catch(err => { document.getElementById('out').textContent = 'Could not load data: ' + err; });
+</script>
+</body>
+</html>

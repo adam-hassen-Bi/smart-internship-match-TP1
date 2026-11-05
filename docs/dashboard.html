@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Smart Internship Match</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    color-scheme: light;
+    --bg: #f4f3ef; --surface: #fcfcfb; --border: #e4e2dc; --grid: #ebe9e3;
+    --text: #0b0b0b; --text-2: #52514e; --text-3: #7d7c77;
+    --accent: #2a78d6; --accent-soft: #cde2fb; --gap: #eb6834; --neutral: #c9c7c0;
+    --good: #0f7a3a; --good-bg: #e3f3e8; --warn: #8a5a00; --warn-bg: #fdf0d2;
+    --shadow: 0 1px 2px rgba(0,0,0,.04), 0 4px 16px rgba(0,0,0,.04);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --bg: #121211; --surface: #1a1a19; --border: #2c2c2a; --grid: #262624;
+      --text: #f0efec; --text-2: #c3c2b7; --text-3: #8e8d86;
+      --accent: #5598e7; --accent-soft: #1c3350; --gap: #d95926; --neutral: #55544f;
+      --good: #6fd391; --good-bg: #16301f; --warn: #f1c25b; --warn-bg: #352a10; --shadow: none;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #121211; --surface: #1a1a19; --border: #2c2c2a; --grid: #262624;
+    --text: #f0efec; --text-2: #c3c2b7; --text-3: #8e8d86;
+    --accent: #5598e7; --accent-soft: #1c3350; --gap: #d95926; --neutral: #55544f;
+    --good: #6fd391; --good-bg: #16301f; --warn: #f1c25b; --warn-bg: #352a10; --shadow: none;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.5 Inter, system-ui, -apple-system, sans-serif; -webkit-font-smoothing: antialiased; }
+  a { color: var(--accent); }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 32px 16px 48px; }
+  .num { font-variant-numeric: tabular-nums; }
+  header { display: flex; justify-content: space-between; align-items: flex-end; gap: 24px; flex-wrap: wrap; margin-bottom: 20px; }
+  .eyebrow { font-size: 12px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--text-3); margin: 0 0 6px; }
+  h1 { font-family: Fraunces, Georgia, serif; font-weight: 600; font-size: clamp(28px, 4vw, 40px); line-height: 1.1; margin: 0; letter-spacing: -.01em; }
+  .lede { margin: 8px 0 0; color: var(--text-2); max-width: 680px; }
+  .status { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; font-size: 13px; color: var(--text-3); }
+  .badge { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; padding: 4px 10px; border-radius: 999px; }
+  .badge.good { color: var(--good); background: var(--good-bg); }
+  .badge.warn { color: var(--warn); background: var(--warn-bg); }
+  h2.section { font-family: Fraunces, Georgia, serif; font-weight: 600; font-size: 23px; margin: 34px 0 4px; }
+  p.why { color: var(--text-2); margin: 0 0 14px; max-width: 840px; font-size: 14px; }
+  p.why b { color: var(--text); }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 20px; box-shadow: var(--shadow); min-width: 0; }
+  .card h3 { font-size: 15px; font-weight: 600; margin: 0; }
+  .card .sub { font-size: 13px; color: var(--text-3); margin: 2px 0 14px; }
+  .grid { display: grid; gap: 16px; }
+  .kpis { grid-template-columns: repeat(4, minmax(0,1fr)); }
+  .g2 { grid-template-columns: minmax(0,1fr) minmax(0,1fr); }
+  .g3 { grid-template-columns: repeat(3, minmax(0,1fr)); }
+  @media (max-width: 900px) { .kpis { grid-template-columns: repeat(2, minmax(0,1fr)); } .g2, .g3 { grid-template-columns: 1fr; } }
+  @media (max-width: 460px) { .kpis { grid-template-columns: 1fr; } }
+  .mt { margin-top: 16px; }
+  .kpi .k { font-size: 13px; color: var(--text-3); }
+  .kpi .v { font-size: 30px; font-weight: 700; line-height: 1.15; margin-top: 4px; }
+  .kpi .v small { font-size: 15px; font-weight: 500; color: var(--text-2); }
+  .kpi .d { font-size: 13px; color: var(--text-2); margin-top: 4px; }
+
+  /* checks */
+  .checks { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 12px; margin-top: 16px; }
+  @media (max-width: 900px) { .checks { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 460px) { .checks { grid-template-columns: 1fr; } }
+  .check { border-radius: 12px; padding: 12px 14px; font-size: 13px; }
+  .check.ok { background: var(--good-bg); }
+  .check.alert { background: var(--warn-bg); }
+  .check .h { font-weight: 700; display: flex; gap: 6px; align-items: center; }
+  .check.ok .h { color: var(--good); }
+  .check.alert .h { color: var(--warn); }
+  .check .t { color: var(--text); margin: 4px 0 2px; }
+  .check .a { color: var(--text-2); }
+
+  /* offers table */
+  .toolbar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 12px; }
+  .toolbar input[type=search] { font: inherit; font-size: 14px; padding: 7px 12px; border: 1px solid var(--border); border-radius: 999px; background: var(--surface); color: var(--text); min-width: 220px; }
+  .seg-ctrl { display: inline-flex; border: 1px solid var(--border); border-radius: 999px; padding: 2px; gap: 2px; }
+  .seg-ctrl button { font: inherit; font-size: 13px; border: 0; background: transparent; color: var(--text-2); padding: 5px 12px; border-radius: 999px; cursor: pointer; }
+  .seg-ctrl button.on { background: var(--text); color: var(--surface); }
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { padding: 9px 10px; text-align: left; border-bottom: 1px solid var(--grid); vertical-align: top; }
+  th { font-weight: 600; color: var(--text-2); white-space: nowrap; }
+  th.r, td.r { text-align: right; }
+  tbody tr:hover { background: var(--grid); }
+  td .t { font-weight: 600; }
+  td .c { color: var(--text-3); }
+  .scorebar { display: flex; align-items: center; gap: 8px; min-width: 120px; }
+  .scorebar .tr { flex: 1; height: 8px; background: var(--grid); border-radius: 999px; position: relative; }
+  .scorebar .f { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 999px; background: var(--accent); }
+  .scorebar .thr { position: absolute; top: -3px; bottom: -3px; border-left: 2px dashed var(--text-3); }
+  .chip { display: inline-block; font-size: 12px; padding: 1px 8px; border-radius: 999px; margin: 1px 2px 1px 0; white-space: nowrap; }
+  .chip.m { background: var(--accent-soft); color: var(--text); }
+  .chip.g { border: 1px solid var(--gap); color: var(--text); }
+  .flag { font-size: 11px; font-weight: 600; color: var(--warn); background: var(--warn-bg); padding: 1px 6px; border-radius: 999px; margin-left: 4px; }
+
+  /* bars */
+  .rows { list-style: none; margin: 0; padding: 0; }
+  .rows li { display: grid; grid-template-columns: 130px 1fr 64px; gap: 10px; align-items: center; min-height: 26px; font-size: 13px; border-radius: 6px; padding: 0 4px; }
+  .rows li:hover { background: var(--grid); }
+  .rows .nm { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .rows .track { height: 12px; }
+  .rows .bar { height: 100%; border-radius: 0 4px 4px 0; }
+  .rows .val { text-align: right; color: var(--text-2); white-space: nowrap; }
+  .rows .val b { color: var(--text); }
+  .dots { display: inline-flex; gap: 3px; }
+  .dots i { width: 8px; height: 8px; border-radius: 50%; background: var(--grid); display: inline-block; }
+  .dots i.on { background: var(--accent); }
+
+  svg.chart { width: 100%; height: auto; display: block; overflow: visible; }
+  svg text { font-family: inherit; font-size: 11px; fill: var(--text-2); }
+  svg .gridline { stroke: var(--grid); }
+  svg .hit { fill: transparent; }
+  .legend { display: flex; gap: 14px; font-size: 13px; color: var(--text-2); margin-bottom: 10px; flex-wrap: wrap; }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .legend i { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+  .qrow { display: flex; justify-content: space-between; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--grid); font-size: 14px; }
+  .qrow:last-child { border-bottom: 0; }
+  .qrow span:first-child { color: var(--text-2); }
+  .empty { color: var(--text-3); font-size: 14px; padding: 18px 0; text-align: center; }
+  .note { font-size: 13px; color: var(--text-3); margin-top: 10px; }
+  details.method summary { cursor: pointer; font-weight: 600; }
+  details.method li { color: var(--text-2); font-size: 14px; margin: 4px 0; }
+  #tip { position: fixed; pointer-events: none; z-index: 1000; background: var(--surface); color: var(--text); border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 4px 16px rgba(0,0,0,.15); padding: 8px 10px; font-size: 13px; opacity: 0; transition: opacity .1s; max-width: 260px; }
+  footer { margin-top: 28px; font-size: 12px; color: var(--text-3); text-align: center; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <p class="eyebrow">Smart Internship Match · my end-of-studies internship search</p>
+      <h1>What should I apply to this week — and is my search working?</h1>
+      <p class="lede">Real internship offers from France Travail, structured by a local LLM, scored against my own skills, plus the outcome of the applications I actually sent. The dashboard ranks; I decide.</p>
+    </div>
+    <div class="status"><span class="badge" id="fresh"></span><span class="num" id="updated"></span></div>
+  </header>
+
+  <!-- ================= ACT ================= -->
+  <div class="grid kpis" id="kpis"></div>
+  <div class="checks" id="checks"></div>
+
+  <h2 class="section">Best matches right now</h2>
+  <p class="why">The decision here is <b>which offers to open first</b>, so this is a <b>ranked table</b>: I need the exact title, company and link to act, and the matched / missing skills to judge each score — a chart would hide all three. The dashed tick is my "worth applying" threshold.</p>
+  <section class="card">
+    <div class="toolbar">
+      <div class="seg-ctrl" id="filter"><button data-f="high" class="on">Worth applying</button><button data-f="all">All offers</button></div>
+      <input type="search" id="q" placeholder="Filter by title, company, skill, city…" aria-label="Filter offers">
+      <span class="note" id="count" style="margin:0"></span>
+    </div>
+    <div class="table-wrap"><table id="offers"></table></div>
+    <p class="note" id="kpiDef"></p>
+  </section>
+
+  <!-- ================= SEARCH EFFECTIVENESS ================= -->
+  <h2 class="section">Is my profile what the market asks for?</h2>
+  <p class="why">Three different questions, three charts. The <b>histogram</b> answers "are my keywords finding offers I fit?" — a distribution, not a list. The two <b>ranked bars</b> answer "what should I learn next?" twice on purpose: by how <b>often</b> a skill is missing, and by how many offers learning it would actually <b>unlock</b> — the two rankings do not agree, and the second one is the decision-grade one.</p>
+  <div class="grid g3">
+    <section class="card">
+      <h3>Match-score distribution</h3>
+      <p class="sub">Number of offers per score band. Right of the dashed line = worth applying.</p>
+      <div id="hist"></div>
+    </section>
+    <section class="card">
+      <h3>Most frequent gaps</h3>
+      <p class="sub">Skills asked for that I don't list, by number of offers.</p>
+      <ul class="rows" id="gaps"></ul>
+    </section>
+    <section class="card">
+      <h3>Next skill to learn</h3>
+      <p class="sub">Offers that would cross the threshold if I reached level 3 in it.</p>
+      <ul class="rows" id="learn"></ul>
+    </section>
+  </div>
+  <section class="card mt">
+    <h3>My strengths the market asks for</h3>
+    <p class="sub">Matched skills by number of offers asking for them, with my self-assessed level (1–5). A frequent skill at a low level is the one to prove better on my CV.</p>
+    <ul class="rows" id="strengths"></ul>
+  </section>
+
+  <!-- ================= OUTCOMES ================= -->
+  <h2 class="section">What happens to my applications</h2>
+  <p class="why">The tracker is a plain table I fill in myself — no AI writes it. Only counts are published; company names stay on my laptop. A <b>status bar</b> shows where applications stand at a glance; <b>weekly bars</b> show my rhythm, because a gap of two weeks matters more than the total.</p>
+  <div class="grid g2">
+    <section class="card">
+      <h3>Where my applications stand</h3>
+      <p class="sub" id="outSub"></p>
+      <div id="status"></div>
+      <div id="outKpis" style="margin-top:12px"></div>
+    </section>
+    <section class="card">
+      <h3>Applications per week</h3>
+      <p class="sub">ISO weeks, by date sent.</p>
+      <div id="weeks"></div>
+    </section>
+  </div>
+
+  <!-- ================= PIPELINE HEALTH ================= -->
+  <h2 class="section">Can I trust the pipeline?</h2>
+  <p class="why">Before believing a ranking, check what fed it: how many offers came in, how many the model could not structure, how often my own re-reading caught a model error — and whether the monitoring checks really ran. Exact numbers, so <b>small tables</b>, not charts.</p>
+  <div class="grid g2">
+    <section class="card">
+      <h3>Data and extraction</h3>
+      <p class="sub" id="pipeSub"></p>
+      <div id="pipe"></div>
+    </section>
+    <section class="card">
+      <h3>Monitoring runs</h3>
+      <p class="sub">Every run of <code>monitor.py</code>, newest first. ▲ = the check raised an alert.</p>
+      <div class="table-wrap"><table id="runs"></table></div>
+    </section>
+  </div>
+
+  <section class="card mt">
+    <details class="method">
+      <summary>How the match score is computed — and its limits</summary>
+      <ul>
+        <li><b>Required skills</b>: extracted from the offer text by qwen3:8b running locally, then normalized (case, spelling, French/English aliases) and de-duplicated; soft skills removed.</li>
+        <li><b>Coverage</b> = matched skills / required skills. <b>Score</b> = (sum of my level / 5 over matched skills) / required skills × min(1, required / 3). A skill I rate 2/5 counts less than one I rate 5/5, and an offer naming only one or two skills cannot score high.</li>
+        <li>Levels are my own self-assessment; a match means "the offer names a skill I list", not "I meet the offer's level".</li>
+        <li>Only France Travail offers (official open data) are published here. Offers scraped from other job boards stay local and never reach this page.</li>
+        <li>Compensation is rarely stated in internship offers, so it is reported as a count, not charted.</li>
+      </ul>
+    </details>
+  </section>
+  <footer>Weekly fetch by GitHub Actions · extraction and matching run locally · <a href="index.html">raw data sanity check</a></footer>
+</div>
+<div id="tip"></div>
+
+<script>
+(function () {
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const fmt = (v, d = 0) => Number(v).toLocaleString('en-GB', { minimumFractionDigits: d, maximumFractionDigits: d });
+  const pct = v => v == null ? '—' : fmt(v * 100) + ' %';
+  const tip = $('tip');
+  const bindTip = (el, html) => {
+    el.addEventListener('mousemove', e => { tip.innerHTML = html; tip.style.opacity = 1;
+      const r = tip.getBoundingClientRect(); let l = e.clientX + 14, t = e.clientY + 14;
+      if (l + r.width > innerWidth - 8) l = e.clientX - r.width - 14; tip.style.left = l + 'px'; tip.style.top = t + 'px'; });
+    el.addEventListener('mouseleave', () => tip.style.opacity = 0);
+  };
+  const get = u => fetch(u, { cache: 'no-cache' }).then(r => r.ok ? r.json() : null).catch(() => null);
+
+  Promise.all([get('data/matches.json'), get('data/outcomes.json'), get('data/monitoring_log.json')]).then(([m, o, log]) => {
+    m = m || { offers: [], n_offers: 0 };
+    const thr = m.high_match_threshold ?? 0.4;
+    const offers = m.offers || [];
+    const checks = (o && o.checks) || [];
+    const ck = id => checks.find(c => c.id === id);
+
+    // ---------- header
+    const f = m.fetched_at ? new Date(m.fetched_at) : null;
+    const age = f ? (Date.now() - f) / 864e5 : Infinity;
+    $('fresh').className = 'badge ' + (age <= 8 ? 'good' : 'warn');
+    $('fresh').textContent = f ? (age <= 8 ? '● Offers fetched this week' : `▲ Offers ${fmt(age)} days old`) : '▲ No offers yet';
+    $('updated').textContent = f ? 'Fetched ' + f.toLocaleDateString('en-GB', { dateStyle: 'medium' }) + (o ? ' · checked ' + new Date(o.generated_at).toLocaleDateString('en-GB', { dateStyle: 'medium' }) : '') : '';
+
+    // ---------- KPIs
+    const high = offers.filter(x => x.score >= thr);
+    const backlog = ck('backlog'), stale = ck('stale');
+    $('kpis').innerHTML = `
+      <div class="card kpi"><div class="k">Offers worth applying to</div><div class="v num">${high.length} <small>of ${offers.length}</small></div><div class="d">score ≥ ${thr}</div></div>
+      <div class="card kpi"><div class="k">Not applied to yet</div><div class="v num">${backlog ? backlog.value : '—'}</div><div class="d">high-match offers to review</div></div>
+      <div class="card kpi"><div class="k">Waiting more than ${o ? o.stale_days : 10} days</div><div class="v num">${stale ? stale.value : '—'}</div><div class="d">applications to follow up</div></div>
+      <div class="card kpi"><div class="k">Response rate</div><div class="v num">${o ? pct(o.response_rate) : '—'}</div><div class="d">${o ? `${o.n_applications} applications sent` : 'no tracker yet'}</div></div>`;
+    $('checks').innerHTML = checks.map(c => `<div class="check ${c.alert ? 'alert' : 'ok'}"><div class="h">${c.alert ? '▲ Alert' : '● OK'}</div>
+      <div class="t">${esc(c.label)}: <b class="num">${c.value ?? '—'}</b></div>${c.alert ? `<div class="a">→ ${esc(c.action)}</div>` : ''}</div>`).join('');
+
+    // ---------- offers table
+    let mode = 'high', q = '';
+    function renderOffers() {
+      const qq = q.trim().toLowerCase();
+      const rows = offers.filter(x => (mode === 'all' || x.score >= thr) && (!qq ||
+        [x.title, x.company, x.location, ...(x.matched || []), ...(x.gaps || [])].join(' ').toLowerCase().includes(qq)));
+      $('count').textContent = `${rows.length} offer${rows.length === 1 ? '' : 's'}`;
+      $('offers').innerHTML = `<thead><tr><th>#</th><th>Offer</th><th>Score</th><th class="r">Covered</th><th>I have</th><th>I'm missing</th><th></th></tr></thead><tbody>` +
+        (rows.length ? rows.slice(0, 60).map((x, i) => `<tr>
+          <td class="num c">${i + 1}</td>
+          <td><div class="t">${esc(x.title)}${x.is_apprenticeship ? '<span class="flag">alternance</span>' : ''}</div><div class="c">${esc(x.company || 'Company not stated')} · ${esc(x.location || '')}${x.date_posted ? ' · ' + esc(String(x.date_posted).slice(0, 10)) : ''}</div></td>
+          <td><div class="scorebar"><span class="tr"><span class="f" style="width:${Math.min(1, x.score) * 100}%"></span><span class="thr" style="left:${thr * 100}%"></span></span><b class="num">${fmt(x.score, 2)}</b></div></td>
+          <td class="r num">${x.scorable ? `${(x.matched || []).length}/${x.n_required}` : '<span class="c">no skill found</span>'}</td>
+          <td>${(x.matched || []).map(s => `<span class="chip m">${esc(s)}</span>`).join('')}</td>
+          <td>${(x.gaps || []).slice(0, 6).map(s => `<span class="chip g">${esc(s)}</span>`).join('')}${(x.gaps || []).length > 6 ? `<span class="c"> +${x.gaps.length - 6}</span>` : ''}</td>
+          <td>${x.url ? `<a href="${esc(x.url)}" target="_blank" rel="noopener">Open ↗</a>` : ''}</td></tr>`).join('')
+          : `<tr><td colspan="7" class="empty">${offers.length ? 'No offer matches this filter.' : 'No offers yet — run the weekly workflow, then ./run_local.sh.'}</td></tr>`) + '</tbody>';
+    }
+    document.querySelectorAll('#filter button').forEach(b => b.addEventListener('click', () => {
+      mode = b.dataset.f; document.querySelectorAll('#filter button').forEach(x => x.classList.toggle('on', x === b)); renderOffers(); }));
+    $('q').addEventListener('input', e => { q = e.target.value; renderOffers(); });
+    renderOffers();
+    $('kpiDef').textContent = m.kpi_definition ? 'Score: ' + m.kpi_definition + '.' : '';
+
+    // ---------- histogram
+    const H = m.score_histogram || [];
+    if (H.length && offers.length) {
+      const W = 360, Ht = 200, mg = { l: 28, r: 8, t: 10, b: 26 }, iw = W - mg.l - mg.r, ih = Ht - mg.t - mg.b;
+      const max = Math.max(1, ...H.map(b => b.offers)), bw = iw / H.length;
+      let g = '';
+      const step = max > 10 ? Math.ceil(max / 4) : max > 4 ? 2 : 1;
+      for (let v = 0; v <= max; v += step) { const y = mg.t + ih - v / max * ih; g += `<line class="gridline" x1="${mg.l}" x2="${W - mg.r}" y1="${y}" y2="${y}"/><text x="${mg.l - 6}" y="${y + 4}" text-anchor="end">${v}</text>`; }
+      H.forEach((b, i) => {
+        const h = b.offers / max * ih, x = mg.l + i * bw;
+        g += `<rect x="${x + 1}" y="${mg.t + ih - h}" width="${bw - 2}" height="${h}" rx="3" fill="${b.from >= thr - 1e-9 ? 'var(--accent)' : 'var(--neutral)'}"/>`;
+        g += `<rect class="hit" data-i="${i}" x="${x}" y="${mg.t}" width="${bw}" height="${ih}"/>`;
+        if (i % 2 === 0) g += `<text x="${x}" y="${Ht - 8}" text-anchor="middle">${fmt(b.from, 1)}</text>`;
+      });
+      g += `<text x="${W - mg.r}" y="${Ht - 8}" text-anchor="end">1.0</text>`;
+      const tx = mg.l + thr * iw;
+      g += `<line x1="${tx}" x2="${tx}" y1="${mg.t - 4}" y2="${mg.t + ih}" stroke="var(--text-3)" stroke-width="2" stroke-dasharray="4 3"/>`;
+      $('hist').innerHTML = `<svg class="chart" viewBox="0 0 ${W} ${Ht}" role="img" aria-label="Match-score distribution">${g}</svg>` +
+        `<p class="note">${m.n_unscorable || 0} offer(s) without any extracted skill are left out.</p>`;
+      $('hist').querySelectorAll('.hit').forEach(r => { const b = H[+r.dataset.i]; bindTip(r, `<b>Score ${fmt(b.from, 1)}–${fmt(b.to, 1)}</b><br>${b.offers} offer(s)`); });
+    } else $('hist').innerHTML = '<div class="empty">No offers yet.</div>';
+
+    // ---------- bars helper
+    function bars(el, items, val, lab, color, extra) {
+      if (!items.length) { $(el).innerHTML = '<li class="empty" style="display:block">Nothing yet.</li>'; return; }
+      const mx = Math.max(...items.map(val), 1);
+      $(el).innerHTML = items.map(it => `<li><span class="nm">${esc(it.skill)}</span><span class="track"><span class="bar" style="display:block;width:${val(it) / mx * 100}%;background:${color}"></span></span><span class="val num">${lab(it)}</span></li>`).join('');
+      if (extra) $(el).querySelectorAll('li').forEach((li, i) => bindTip(li, extra(items[i])));
+    }
+    const nOff = offers.length || 1;
+    bars('gaps', (m.top_skill_gaps || []).slice(0, 8), x => x.count, x => `<b>${x.count}</b>`, 'var(--gap)', x => `<b>${esc(x.skill)}</b><br>missing in ${x.count} of ${offers.length} offers (${pct(x.count / nOff)})`);
+    bars('learn', (m.next_skill_to_learn || []).slice(0, 8), x => x.offers_unlocked, x => `<b>+${x.offers_unlocked}</b>`, 'var(--accent)', x => `<b>${esc(x.skill)}</b><br>${x.offers_unlocked} offer(s) would cross ${thr}`);
+    const st = m.top_matched_skills || [];
+    if (st.length) {
+      const mx = Math.max(...st.map(s => s.count));
+      $('strengths').innerHTML = st.map(s => `<li style="grid-template-columns:150px 1fr 150px"><span class="nm">${esc(s.skill)}</span>
+        <span class="track"><span class="bar" style="display:block;width:${s.count / mx * 100}%;background:var(--accent)"></span></span>
+        <span class="val num"><b>${s.count}</b> offers · <span class="dots" aria-label="level ${s.level} of 5">${[1, 2, 3, 4, 5].map(i => `<i class="${i <= s.level ? 'on' : ''}"></i>`).join('')}</span></span></li>`).join('');
+    } else $('strengths').innerHTML = '<li class="empty" style="display:block">Nothing yet.</li>';
+
+    // ---------- outcomes
+    if (o && o.n_applications) {
+      const order = [['sent', 'Waiting', 'var(--neutral)'], ['callback', 'Called back', 'var(--accent)'], ['interview', 'Interview', 'var(--accent)'], ['offer', 'Offer', 'var(--good)'], ['rejected', 'Rejected', 'var(--gap)'], ['withdrawn', 'Withdrawn', 'var(--grid)']];
+      const tot = o.n_applications;
+      $('outSub').textContent = `${tot} applications · ${Object.entries(o.by_country || {}).map(([c, n]) => `${n} ${c}`).join(' · ')}`;
+      $('status').innerHTML = `<div style="display:flex;gap:2px;height:30px;border-radius:6px;overflow:hidden">` +
+        order.filter(([k]) => o.by_status[k]).map(([k, l, c]) => `<span title="${l}: ${o.by_status[k]}" style="width:${o.by_status[k] / tot * 100}%;background:${c}"></span>`).join('') + '</div>' +
+        `<div class="legend" style="margin-top:10px">` + order.filter(([k]) => o.by_status[k]).map(([k, l, c]) => `<span><i style="background:${c}"></i>${l} <b class="num">${o.by_status[k]}</b></span>`).join('') + '</div>';
+      const row = (k, v) => `<div class="qrow"><span>${k}</span><b class="num">${v}</b></div>`;
+      $('outKpis').innerHTML = row('Response rate (any answer)', pct(o.response_rate)) + row('Positive answers (callback, interview, offer)', pct(o.positive_rate)) +
+        row('Median days to an answer', o.median_days_to_answer == null ? '—' : fmt(o.median_days_to_answer) + ` days (${o.n_answers_with_date} dated)`);
+      const wk = o.by_week || [], W = 420, Ht = 180, mg = { l: 24, r: 6, t: 10, b: 30 };
+      const mx = Math.max(1, ...wk.map(w => w.applications)), bw = Math.min(48, (W - mg.l - mg.r) / Math.max(1, wk.length)), ih = Ht - mg.t - mg.b;
+      let g = '';
+      for (let v = 0; v <= mx; v += Math.max(1, Math.ceil(mx / 4))) { const y = mg.t + ih - v / mx * ih; g += `<line class="gridline" x1="${mg.l}" x2="${W - mg.r}" y1="${y}" y2="${y}"/><text x="${mg.l - 6}" y="${y + 4}" text-anchor="end">${v}</text>`; }
+      wk.forEach((w, i) => { const h = w.applications / mx * ih, x = mg.l + i * bw;
+        g += `<rect x="${x + 3}" y="${mg.t + ih - h}" width="${Math.max(2, bw - 6)}" height="${h}" rx="3" fill="var(--accent)"/>`;
+        if (wk.length <= 12 || i % 2 === 0) g += `<text x="${x + bw / 2}" y="${Ht - 12}" text-anchor="middle">${esc(w.week.slice(5))}</text>`; });
+      $('weeks').innerHTML = `<svg class="chart" viewBox="0 0 ${W} ${Ht}" role="img" aria-label="Applications per week">${g}</svg>`;
+    } else {
+      $('outSub').textContent = 'No application tracked yet.';
+      $('status').innerHTML = '<div class="empty">Fill in data/tracker/applications.csv, then run monitor.py.</div>';
+      $('weeks').innerHTML = '<div class="empty">No data yet.</div>';
+    }
+
+    // ---------- pipeline health
+    const row = (k, v) => `<div class="qrow"><span>${k}</span><b class="num">${v}</b></div>`;
+    const ex = m.extraction || {}, cr = o && o.critique;
+    $('pipeSub').textContent = ex.model ? `Model ${ex.model}${ex.avg_seconds_per_offer ? ' · ' + ex.avg_seconds_per_offer + ' s per new offer' : ''}` : '';
+    $('pipe').innerHTML =
+      row('Offers on this page (France Travail)', offers.length) +
+      row('Offers the model could not structure', `${m.n_extraction_errors || 0} errors · ${m.n_unscorable || 0} with no skill`) +
+      row('Extraction error rate from my own re-reading', cr && cr.error_rate != null ? `${pct(cr.error_rate)} (${cr.errors}/${cr.skills_checked} skills, ${cr.n_offers_checked} offers)` : 'not done yet') +
+      row('Offers stating an experience requirement', `${m.n_with_experience_stated || 0} of ${offers.length}`) +
+      row('Offers stating a compensation figure', `${m.n_offers_with_compensation || 0} of ${offers.length}`) +
+      row('Offers re-used from cache this run', ex.n_reused_from_cache ?? '—');
+    const runs = ((log && log.runs) || []).slice().reverse();
+    const cell = c => c ? `${c.alert ? '▲ ' : ''}${c.value ?? '—'}` : '—';
+    $('runs').innerHTML = runs.length ? `<thead><tr><th>Run</th><th class="r">Stale</th><th class="r">Fetch age</th><th class="r">New matches</th><th class="r">Backlog</th></tr></thead><tbody>` +
+      runs.slice(0, 10).map(r => `<tr><td class="num">${new Date(r.run_at).toLocaleString('en-GB', { dateStyle: 'medium', timeStyle: 'short' })}</td>
+        <td class="r num">${cell(r.checks.stale)}</td><td class="r num">${cell(r.checks.freshness)}</td><td class="r num">${cell(r.checks.new_match)}</td><td class="r num">${cell(r.checks.backlog)}</td></tr>`).join('') + '</tbody>'
+      : '<tbody><tr><td class="empty">No monitoring run yet.</td></tr></tbody>';
+  });
+})();
+</script>
+</body>
+</html>
