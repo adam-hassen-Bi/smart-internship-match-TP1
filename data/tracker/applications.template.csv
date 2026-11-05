@@ -1,0 +1,2 @@
+date_applied,company,title,offer_id,source,country,status,date_response,notes
+2026-09-15,Example company,Example internship title,ft_000000X,france_travail,France,sent,,delete this line -- statuses: sent / callback / interview / rejected / offer / withdrawn
