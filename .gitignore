@@ -1,0 +1,9 @@
+# personal writing and anything that may contain scraped or private content
+output/cv_drafts/
+data/offers/jobspy_offers.json
+data/offers/merged_offers.json
+data/offers/structured_offers.json
+data/offers/matches_all_local.json
+# my own application tracker: company names, dates, outcomes -- never published
+data/tracker/applications.csv
+__pycache__/
