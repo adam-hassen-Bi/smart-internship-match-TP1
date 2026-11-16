@@ -1,5 +1,5 @@
 skill,level,evidence,aliases
-Python,4,"stock-prediction app data pipeline (market-data APIs, cleaning, processing); BI course pipelines on Open-Meteo, SETRAM GTFS and France Travail data","python3|pandas|numpy"
+Python,4,"stock-prediction app data pipeline (market-data APIs, cleaning, processing); BI course pipelines on Open-Meteo, SETRAM GTFS and public job-board APIs","python3|pandas|numpy"
 Machine learning,4,"hybrid Transformer + FinBERT stock-prediction model, deployed on Hugging Face (adam5858); Data Science specialization at ESPRIT","ml|apprentissage automatique|machine learning engineering"
 Deep learning,3,"Transformer model for time-series price prediction in the stock-prediction app","dl|neural networks|réseaux de neurones"
 NLP,4,"FinBERT news-sentiment analysis in the stock-prediction app; LLM skill extraction from job postings (BI TD3)","natural language processing|traitement du langage naturel|tal"
@@ -9,7 +9,7 @@ Time series,3,"stock-price forecasting on 8 symbols (AAPL, TSLA, BTC-USD...) in 
 Data visualization,4,"five BI dashboards built for the ENSIM course (CO2, cost, network, transit punctuality, skills)","dataviz|visualisation de données|dashboards|tableaux de bord|data viz"
 Git,4,"every course and personal project on GitHub; organisation adam-hassen-Bi for the BI course","github|gitlab"
 CI/CD,4,"scheduled GitHub Actions pipelines: stock data and news sentiment, weather ranking, transit snapshots every 15 min","github actions|ci cd|cicd|devops"
-API REST,3,"pipelines consuming REST APIs (France Travail OAuth2, Open-Meteo, GTFS-RT); API et Outillage coursework","rest|api|rest api|apis"
+API REST,3,"pipelines consuming REST APIs (job-board APIs, Open-Meteo, GTFS-RT); API et Outillage coursework","rest|api|rest api|apis"
 SQL,3,"Room/SQLite persistence in the MonBudget Android app; database coursework","sqlite|mysql|postgresql|bases de données"
 Java,3,"Java and Spring coursework projects","java ee|jee"
 Spring,3,"Spring back-end coursework","spring boot"
