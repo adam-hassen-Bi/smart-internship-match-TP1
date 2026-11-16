@@ -1,5 +1,6 @@
 # personal writing and anything that may contain scraped or private content
 output/cv_drafts/
+data/offers/raw_offers.json
 data/offers/jobspy_offers.json
 data/offers/merged_offers.json
 data/offers/structured_offers.json
