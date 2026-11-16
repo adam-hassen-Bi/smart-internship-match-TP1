@@ -135,7 +135,7 @@
     <div>
       <p class="eyebrow">Smart Internship Match · my end-of-studies internship search</p>
       <h1>What should I apply to this week — and is my search working?</h1>
-      <p class="lede">Real internship offers from France Travail, structured by a local LLM, scored against my own skills, plus the outcome of the applications I actually sent. The dashboard ranks; I decide.</p>
+      <p class="lede">Real internship offers from several public job APIs and company career sites, structured by a local LLM, scored against my own skills, plus the outcome of the applications I actually sent. The dashboard ranks; I decide.</p>
     </div>
     <div class="status"><span class="badge" id="fresh"></span><span class="num" id="updated"></span></div>
   </header>
@@ -216,13 +216,19 @@
   </div>
 
   <section class="card mt">
+      <h3>Sources</h3>
+      <p class="sub" id="srcSub">Last weekly fetch, per source: jobs scanned, tech internships kept, and whether they can appear on this page. A source that keeps 0 is still checked every week — it shows the job market, not a bug.</p>
+      <div class="table-wrap"><table id="sources"></table></div>
+  </section>
+
+  <section class="card mt">
     <details class="method">
       <summary>How the match score is computed — and its limits</summary>
       <ul>
         <li><b>Required skills</b>: extracted from the offer text by qwen3:8b running locally, then normalized (case, spelling, French/English aliases) and de-duplicated; soft skills removed.</li>
         <li><b>Coverage</b> = matched skills / required skills. <b>Score</b> = (sum of my level / 5 over matched skills) / required skills × min(1, required / 3). A skill I rate 2/5 counts less than one I rate 5/5, and an offer naming only one or two skills cannot score high.</li>
         <li>Levels are my own self-assessment; a match means "the offer names a skill I list", not "I meet the offer's level".</li>
-        <li>Only France Travail offers (official open data) are published here. Offers scraped from other job boards stay local and never reach this page.</li>
+        <li>Offers come from public job APIs (Arbeitnow, Jobicy, Remotive, Remote OK) and the official career-site APIs of companies hiring in France. Only sources that allow showing their jobs with a link back are published, and only title, company, link, extracted skills and score — never the offer text. Remotive and anything scraped with jobspy stay on my laptop.</li>
         <li>Compensation is rarely stated in internship offers, so it is reported as a count, not charted.</li>
       </ul>
     </details>
@@ -246,7 +252,8 @@
   };
   const get = u => fetch(u, { cache: 'no-cache' }).then(r => r.ok ? r.json() : null).catch(() => null);
 
-  Promise.all([get('data/matches.json'), get('data/outcomes.json'), get('data/monitoring_log.json')]).then(([m, o, log]) => {
+  const SRC = { arbeitnow: 'Arbeitnow', company_boards: 'Career site', jobicy: 'Jobicy', remotive: 'Remotive', remoteok: 'Remote OK', indeed: 'Indeed', zip_recruiter: 'ZipRecruiter' };
+  Promise.all([get('data/matches.json'), get('data/outcomes.json'), get('data/monitoring_log.json'), get('data/source_health.json')]).then(([m, o, log, sh]) => {
     m = m || { offers: [], n_offers: 0 };
     const thr = m.high_match_threshold ?? 0.4;
     const offers = m.offers || [];
@@ -254,7 +261,7 @@
     const ck = id => checks.find(c => c.id === id);
 
     // ---------- header
-    const f = m.fetched_at ? new Date(m.fetched_at) : null;
+    const fa = (sh && sh.fetched_at) || m.fetched_at, f = fa ? new Date(fa) : null;
     const age = f ? (Date.now() - f) / 864e5 : Infinity;
     $('fresh').className = 'badge ' + (age <= 8 ? 'good' : 'warn');
     $('fresh').textContent = f ? (age <= 8 ? '● Offers fetched this week' : `▲ Offers ${fmt(age)} days old`) : '▲ No offers yet';
@@ -281,7 +288,7 @@
       $('offers').innerHTML = `<thead><tr><th>#</th><th>Offer</th><th>Score</th><th class="r">Covered</th><th>I have</th><th>I'm missing</th><th></th></tr></thead><tbody>` +
         (rows.length ? rows.slice(0, 60).map((x, i) => `<tr>
           <td class="num c">${i + 1}</td>
-          <td><div class="t">${esc(x.title)}${x.is_apprenticeship ? '<span class="flag">alternance</span>' : ''}</div><div class="c">${esc(x.company || 'Company not stated')} · ${esc(x.location || '')}${x.date_posted ? ' · ' + esc(String(x.date_posted).slice(0, 10)) : ''}</div></td>
+          <td><div class="t">${esc(x.title)}${x.is_apprenticeship ? '<span class="flag">alternance</span>' : ''}</div><div class="c">${esc(x.company || 'Company not stated')} · ${esc(x.location || '')}${x.date_posted ? ' · ' + esc(String(x.date_posted).slice(0, 10)) : ''} · <span title="source">via ${esc(SRC[x.source] || x.source)}</span></div></td>
           <td><div class="scorebar"><span class="tr"><span class="f" style="width:${Math.min(1, x.score) * 100}%"></span><span class="thr" style="left:${thr * 100}%"></span></span><b class="num">${fmt(x.score, 2)}</b></div></td>
           <td class="r num">${x.scorable ? `${(x.matched || []).length}/${x.n_required}` : '<span class="c">no skill found</span>'}</td>
           <td>${(x.matched || []).map(s => `<span class="chip m">${esc(s)}</span>`).join('')}</td>
@@ -365,12 +372,19 @@
     const ex = m.extraction || {}, cr = o && o.critique;
     $('pipeSub').textContent = ex.model ? `Model ${ex.model}${ex.avg_seconds_per_offer ? ' · ' + ex.avg_seconds_per_offer + ' s per new offer' : ''}` : '';
     $('pipe').innerHTML =
-      row('Offers on this page (France Travail)', offers.length) +
+      row('Offers on this page (publishable sources)', offers.length) +
       row('Offers the model could not structure', `${m.n_extraction_errors || 0} errors · ${m.n_unscorable || 0} with no skill`) +
       row('Extraction error rate from my own re-reading', cr && cr.error_rate != null ? `${pct(cr.error_rate)} (${cr.errors}/${cr.skills_checked} skills, ${cr.n_offers_checked} offers)` : 'not done yet') +
       row('Offers stating an experience requirement', `${m.n_with_experience_stated || 0} of ${offers.length}`) +
       row('Offers stating a compensation figure', `${m.n_offers_with_compensation || 0} of ${offers.length}`) +
       row('Offers re-used from cache this run', ex.n_reused_from_cache ?? '—');
+    const S = Object.entries((sh && sh.sources) || {});
+    $('sources').innerHTML = S.length ? `<thead><tr><th>Source</th><th>Status</th><th class="r">Scanned</th><th class="r">Kept</th><th>On this page</th></tr></thead><tbody>` +
+      S.map(([k, v]) => `<tr><td>${v.home ? `<a href="${esc(v.home)}" target="_blank" rel="noopener">${esc(v.attribution)}</a>` : esc(v.attribution)}</td>
+        <td>${v.ok ? '● up' : `<span title="${esc(v.error)}">▲ down</span>`}</td><td class="r num">${fmt(v.n_scanned)}</td><td class="r num"><b>${fmt(v.n_kept)}</b></td>
+        <td>${v.publishable ? 'yes, with link' : 'local only'}</td></tr>`).join('') +
+      `<tr><td colspan="3"><b>Total after removing duplicates</b></td><td class="r num"><b>${fmt(sh.n_offers)}</b></td><td></td></tr></tbody>`
+      : '<tbody><tr><td class="empty">No fetch yet.</td></tr></tbody>';
     const runs = ((log && log.runs) || []).slice().reverse();
     const cell = c => c ? `${c.alert ? '▲ ' : ''}${c.value ?? '—'}` : '—';
     $('runs').innerHTML = runs.length ? `<thead><tr><th>Run</th><th class="r">Stale</th><th class="r">Fetch age</th><th class="r">New matches</th><th class="r">Backlog</th></tr></thead><tbody>` +
