@@ -6,11 +6,15 @@ schema right here (same fields as before: id, source, title, company, location,
 description, url, date_posted, ...).
 
 Sources (public JSON endpoints, no account, no key):
-  the_muse   themuse.com/api/public/jobs      level=Internship, French cities + remote
   arbeitnow  arbeitnow.com/api/job-board-api  European board (mostly DE/FR/NL), paged
   remotive   remotive.com/api/remote-jobs     remote jobs, job_type "internship"
   jobicy     jobicy.com/api/v2/remote-jobs    remote jobs, geo filter
-  remoteok   remoteok.com/api                 remote jobs, tag filter
+  remoteok   remoteok.com/api                 remote jobs
+  company_boards  official career-site APIs (Greenhouse, Lever, Ashby,
+             SmartRecruiters) of companies hiring engineering interns in France
+
+Tried and dropped: The Muse's public API (/api/public/jobs) answered 404 to every
+query on 16 Nov 2026, and company slugs with no public board (checked the same day).
 
 Every source is optional: if one is down or changes its format, it is recorded as
 failed in docs/data/source_health.json and the others still work. Each one is asked
@@ -20,10 +24,11 @@ What gets committed: ONLY docs/data/source_health.json (counts per source, no
 offer text). The offers themselves (data/offers/raw_offers.json) stay local and
 gitignored: several of these boards allow showing their jobs with a link back, but
 not copying their content into another site, so the public dashboard only ever
-shows title / company / link / my score (see `publishable` in SOURCES).
+shows title / company / link / extracted skills / my score, never the offer text
+(see `publishable` in SOURCES).
 
     python3 scripts/fetch_offers.py              # all sources
-    python3 scripts/fetch_offers.py the_muse     # one source (debug)
+    python3 scripts/fetch_offers.py arbeitnow    # one source (debug)
 """
 import html
 import json
@@ -51,9 +56,6 @@ TECH_RE = re.compile(r"\b(data|donn[ée]es|software|logiciel|d[ée]velopp\w*|dev
 IT_RE = re.compile(r"\bIT\b")   # "IT" in capitals only -- "it" is an English word
 FRANCE_RE = re.compile(r"france|paris|lyon|toulouse|nantes|lille|bordeaux|rennes|marseille|grenoble|"
                        r"nice|sophia|montpellier|strasbourg|le mans|remote|t[ée]l[ée]travail|emea|europe", re.I)
-FRANCE_CITIES = ["Paris, France", "Lyon, France", "Toulouse, France", "Nantes, France", "Lille, France",
-                 "Bordeaux, France", "Rennes, France", "Marseille, France", "Grenoble, France",
-                 "Nice, France", "Le Mans, France", "Flexible / Remote"]
 
 
 def clean_text(s):
@@ -114,37 +116,6 @@ def offer(source, sid, title, company, location, description, url, date_posted, 
 
 
 # ------------------------------------------------------------------ sources
-def fetch_the_muse():
-    """level=Internship is a real filter here; one query per French city + remote."""
-    out, n_raw = {}, 0
-    failures = 0
-    for loc in FRANCE_CITIES:
-        for page in range(0, 5):
-            try:
-                d = get_json("https://www.themuse.com/api/public/jobs",
-                             {"level": "Internship", "location": loc, "page": page}, retries=1)
-            except RuntimeError:
-                failures += 1
-                break
-            res = d.get("results", [])
-            n_raw += len(res)
-            for j in res:
-                cats = " ".join(c.get("name", "") for c in j.get("categories", []))
-                if not is_tech(j.get("name")):
-                    continue
-                out[j["id"]] = offer(
-                    "the_muse", j["id"], j.get("name"), (j.get("company") or {}).get("name"),
-                    "; ".join(l.get("name", "") for l in j.get("locations", [])),
-                    j.get("contents"), (j.get("refs") or {}).get("landing_page"),
-                    j.get("publication_date"), "Internship", matched_search=loc)
-            if page + 1 >= d.get("page_count", 0):
-                break
-            time.sleep(0.5)
-    if failures == len(FRANCE_CITIES):
-        raise RuntimeError("every city query failed (endpoint gone?)")
-    return list(out.values()), n_raw
-
-
 def fetch_arbeitnow(max_pages=10):
     out, n_raw = [], 0
     url, params = "https://www.arbeitnow.com/api/job-board-api", {"page": 1}
@@ -227,21 +198,23 @@ def fetch_remoteok():
 # These endpoints exist so that jobs can be shown elsewhere (they are what the
 # companies' own career pages call), no key needed. One failing company is logged
 # and skipped, never fatal.
-GREENHOUSE = ["datadog", "dataiku", "contentsquare", "blablacar", "criteo", "algolia", "spendesk", "mirakl",
-              "ledger", "backmarket", "alan", "payfit", "doctolib", "qonto", "deezer", "sorare", "pennylane",
-              "ankorstore", "vestiairecollective", "owkin", "photoroom", "botify", "swile", "younited", "malt"]
-LEVER = ["mistral", "qonto", "backmarket", "aircall", "alan", "ledger", "doctolib", "sorare", "pennylane",
-         "swile", "spendesk", "payfit", "welcometothejungle", "lydia", "malt", "ornikar", "getaround",
-         "manomano", "ekimetrics", "dust", "photoroom", "shift-technology", "contentsquare"]
-ASHBY = ["mistral", "photoroom", "dust", "alan", "pennylane", "h-company", "poolside", "kyutai", "owkin",
-         "huggingface", "ledger"]
-SMARTRECRUITERS = ["Ubisoft2", "Capgemini", "SopraSteria", "Thales", "Devoteam", "Atos"]
+GREENHOUSE = ["datadog", "dataiku", "mirakl", "algolia"]
+LEVER = ["ekimetrics", "malt", "contentsquare", "swile", "qonto"]
+ASHBY = ["alan", "ledger", "pennylane", "dust", "owkin", "photoroom", "poolside"]
+SMARTRECRUITERS = ["Ubisoft2", "Devoteam", "Capgemini", "SopraSteria", "Thales", "Atos"]
+COMPANY_NAMES = {"datadog": "Datadog", "dataiku": "Dataiku", "mirakl": "Mirakl", "algolia": "Algolia",
+                 "ekimetrics": "Ekimetrics", "malt": "Malt", "contentsquare": "Contentsquare", "swile": "Swile",
+                 "qonto": "Qonto", "alan": "Alan", "ledger": "Ledger", "pennylane": "Pennylane", "dust": "Dust",
+                 "owkin": "Owkin", "photoroom": "Photoroom", "poolside": "Poolside", "Ubisoft2": "Ubisoft",
+                 "Devoteam": "Devoteam", "Capgemini": "Capgemini", "SopraSteria": "Sopra Steria",
+                 "Thales": "Thales", "Atos": "Atos"}
 
 
 def board_offer(ats, company, sid, title, location, description, url, posted):
     if not INTERN_RE.search(title or "") or not is_tech(title) or not FRANCE_RE.search(location or ""):
         return None
-    o = offer("company_boards", f"{ats}_{company}_{sid}", title, company, location, description, url, posted,
+    o = offer("company_boards", f"{ats}_{company}_{sid}", title, COMPANY_NAMES.get(company, company),
+              location, description, url, posted,
               "Internship")
     o["ats"] = ats
     return o
@@ -340,15 +313,13 @@ def fetch_company_boards():
 # publishable: may the public dashboard show title/company/link/score for this
 # source? Decided from each source's published terms (README, "Sources and terms").
 SOURCES = {
-    "the_muse":  {"fn": fetch_the_muse,  "publishable": True,  "attribution": "The Muse",
-                  "home": "https://www.themuse.com"},
     "arbeitnow": {"fn": fetch_arbeitnow, "publishable": True,  "attribution": "Arbeitnow",
                   "home": "https://www.arbeitnow.com"},
     "remotive":  {"fn": fetch_remotive,  "publishable": False, "attribution": "Remotive",
                   "home": "https://remotive.com"},
     "jobicy":    {"fn": fetch_jobicy,    "publishable": True,  "attribution": "Jobicy",
                   "home": "https://jobicy.com"},
-    "company_boards": {"fn": fetch_company_boards, "publishable": True, "attribution": "company career sites",
+    "company_boards": {"fn": fetch_company_boards, "publishable": True, "attribution": "Company career sites",
                        "home": None},
     "remoteok":  {"fn": fetch_remoteok,  "publishable": True,  "attribution": "Remote OK",
                   "home": "https://remoteok.com"},
