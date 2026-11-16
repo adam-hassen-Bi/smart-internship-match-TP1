@@ -1,0 +1,52 @@
+{
+  "fetched_at": "2026-11-16T08:48:16Z",
+  "n_offers": 85,
+  "n_duplicates_removed": 2,
+  "sources": {
+    "the_muse": {
+      "ok": false,
+      "error": "unreachable after 3 attempts: 404 Client Error: Not Found for url: https://www.themuse.com/api/public/jobs?level=Internship&location=Paris%2C+France&page=0&descending=true",
+      "n_scanned": 0,
+      "n_kept": 0,
+      "publishable": true,
+      "attribution": "The Muse",
+      "home": "https://www.themuse.com"
+    },
+    "arbeitnow": {
+      "ok": true,
+      "n_scanned": 2514,
+      "n_kept": 86,
+      "seconds": 11.9,
+      "publishable": true,
+      "attribution": "Arbeitnow",
+      "home": "https://www.arbeitnow.com"
+    },
+    "remotive": {
+      "ok": true,
+      "n_scanned": 32,
+      "n_kept": 0,
+      "seconds": 0.2,
+      "publishable": false,
+      "attribution": "Remotive",
+      "home": "https://remotive.com"
+    },
+    "jobicy": {
+      "ok": true,
+      "n_scanned": 300,
+      "n_kept": 1,
+      "seconds": 3.7,
+      "publishable": true,
+      "attribution": "Jobicy",
+      "home": "https://jobicy.com"
+    },
+    "remoteok": {
+      "ok": true,
+      "n_scanned": 97,
+      "n_kept": 0,
+      "seconds": 0.5,
+      "publishable": true,
+      "attribution": "Remote OK",
+      "home": "https://remoteok.com"
+    }
+  }
+}
