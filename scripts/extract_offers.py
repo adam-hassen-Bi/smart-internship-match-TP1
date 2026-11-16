@@ -26,7 +26,7 @@ import requests
 
 OLLAMA_URL = "http://127.0.0.1:11434/api/generate"
 MODEL = "qwen3:8b"
-MAX_CHARS = 6000   # France Travail descriptions are far shorter; guards against huge scraped pages
+MAX_CHARS = 6000   # most descriptions are shorter; guards against very long career pages
 OUT_PATH = "data/offers/structured_offers.json"
 
 PROMPT_TEMPLATE = """Extract ONLY these things from this job/internship description text

@@ -14,7 +14,8 @@ Outputs (committed, aggregates only -- no company name, no title):
 
 The four checks ("something is wrong with my search" means, for me):
   1. STALE      an application sent more than STALE_DAYS ago with no answer yet -> follow up
-  2. FRESHNESS  the weekly France Travail fetch is older than 8 days -> the workflow stopped
+  2. FRESHNESS  the weekly fetch is older than 8 days, or a source returned an error
+                -> the workflow stopped, or a job API changed or went down
   3. NEW_MATCH  no new high-match offer since the previous run -> widen the search
   4. BACKLOG    high-match offers I have not applied to yet -> review them
 
@@ -32,7 +33,8 @@ TEMPLATE = "data/tracker/applications.template.csv"
 MATCHES = "docs/data/matches.json"
 OUTCOMES = "docs/data/outcomes.json"
 LOG = "docs/data/monitoring_log.json"
-CRITIQUE = "data/quality/critique_log.csv"   # my manual check of the LLM output (committed: France Travail ids only)
+CRITIQUE = "data/quality/critique_log.csv"   # my manual check of the LLM output (committed: publishable offer ids only)
+HEALTH = "docs/data/source_health.json"
 STALE_DAYS = 10
 FRESHNESS_DAYS = 8
 
@@ -130,7 +132,9 @@ def main():
 
     # ---------------- checks
     stale = [a for a in active if a["status"] == "sent" and (today - a["date_applied"]).days > STALE_DAYS]
-    fetched = matches.get("fetched_at")
+    health = load_json(HEALTH, {})
+    fetched = health.get("fetched_at") or matches.get("fetched_at")
+    down = sorted(k for k, v in (health.get("sources") or {}).items() if not v.get("ok"))
     fetched_d = parse_date(fetched) if fetched else None
     fetch_age = (today - fetched_d).days if fetched_d else None
     thr = matches.get("high_match_threshold", 0.4)
@@ -143,9 +147,9 @@ def main():
     checks = [
         {"id": "stale", "label": f"Applications with no answer after {STALE_DAYS} days",
          "value": len(stale), "alert": len(stale) > 0, "action": "Send a follow-up e-mail"},
-        {"id": "freshness", "label": "Days since the last France Travail fetch",
-         "value": fetch_age, "alert": fetch_age is None or fetch_age > FRESHNESS_DAYS,
-         "action": "Check the weekly workflow in the Actions tab"},
+        {"id": "freshness", "label": "Days since the last fetch" + (f" ({len(down)} source(s) down: {', '.join(down)})" if down else ""),
+         "value": fetch_age, "alert": fetch_age is None or fetch_age > FRESHNESS_DAYS or bool(down),
+         "action": "Check the weekly workflow in the Actions tab, then the failing source"},
         {"id": "new_match", "label": "New high-match offers since the previous check",
          "value": len(new_high), "alert": prev is not None and len(new_high) == 0,
          "action": "Widen the keywords or the region"},
@@ -176,7 +180,7 @@ def main():
         "n_applications": n,
         "n_offers": matches.get("n_offers", 0),
         "checks": {c["id"]: {"value": c["value"], "alert": c["alert"]} for c in checks},
-        "high_match_ids": high_ids,     # France Travail ids only (public data); needed for check 3
+        "high_match_ids": high_ids,     # publishable offer ids only; needed for check 3
     })
     with open(LOG, "w", encoding="utf-8") as f:
         json.dump(log, f, indent=2, ensure_ascii=False)

@@ -1,7 +1,8 @@
 """Score every structured offer against my profile -> two outputs.
 
   data/offers/matches_all_local.json  every source, git-ignored, for me only
-  docs/data/matches.json              publishable sources only (France Travail), committed
+  docs/data/matches.json              publishable sources only, committed -- without the
+                                      offer text or quotes (title, company, link, skills, score)
 
 THE KPI (my design, see score_offer) -- "level-weighted coverage, discounted when
 the offer says too little to judge":
@@ -28,6 +29,7 @@ import time
 from skills import NOT_A_SKILL, profile_index, skill_key
 
 MIN_REQUIRED_FOR_FULL_CONFIDENCE = 3
+PRIVATE_FIELDS = {"description", "responsibilities", "experience_required", "compensation_mentioned", "text_hash"}
 HIGH_MATCH_SCORE = 0.4        # "worth applying" threshold, used by the dashboard and the monitor
 SCORE_BINS = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0001]
 
@@ -171,9 +173,14 @@ def main():
     print(f"Wrote data/offers/matches_all_local.json ({len(results)} offers) -- gitignored, local only")
 
     public_results = [r for r in results if r.get("publishable", False)]
+    public = build_output(public_results, profile, data)
+    # The boards allow showing their jobs with a link back, not copying their text:
+    # the public file keeps facts (skills, score, link) and drops anything quoted or
+    # paraphrased from the description. The counts above were computed before this.
+    public["offers"] = [{k: v for k, v in r.items() if k not in PRIVATE_FIELDS} for r in public["offers"]]
     os.makedirs("docs/data", exist_ok=True)
     with open("docs/data/matches.json", "w", encoding="utf-8") as f:
-        json.dump(build_output(public_results, profile, data), f, indent=2, ensure_ascii=False)
+        json.dump(public, f, indent=2, ensure_ascii=False)
     print(f"Wrote docs/data/matches.json ({len(public_results)} of {len(results)} offers -- publishable sources only)")
 
 
