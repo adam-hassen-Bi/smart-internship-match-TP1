@@ -1,22 +1,13 @@
 {
-  "fetched_at": "2026-11-16T08:50:18Z",
+  "fetched_at": "2026-11-16T08:54:37Z",
   "n_offers": 95,
   "n_duplicates_removed": 4,
   "sources": {
-    "the_muse": {
-      "ok": false,
-      "error": "every city query failed (endpoint gone?)",
-      "n_scanned": 0,
-      "n_kept": 0,
-      "publishable": true,
-      "attribution": "The Muse",
-      "home": "https://www.themuse.com"
-    },
     "arbeitnow": {
       "ok": true,
       "n_scanned": 2514,
       "n_kept": 78,
-      "seconds": 12.8,
+      "seconds": 11.9,
       "publishable": true,
       "attribution": "Arbeitnow",
       "home": "https://www.arbeitnow.com"
@@ -25,7 +16,7 @@
       "ok": true,
       "n_scanned": 32,
       "n_kept": 0,
-      "seconds": 0.2,
+      "seconds": 0.1,
       "publishable": false,
       "attribution": "Remotive",
       "home": "https://remotive.com"
@@ -34,7 +25,7 @@
       "ok": true,
       "n_scanned": 300,
       "n_kept": 1,
-      "seconds": 4.1,
+      "seconds": 4.0,
       "publishable": true,
       "attribution": "Jobicy",
       "home": "https://jobicy.com"
@@ -43,16 +34,16 @@
       "ok": true,
       "n_scanned": 1015,
       "n_kept": 20,
-      "seconds": 67.0,
+      "seconds": 9.0,
       "publishable": true,
-      "attribution": "company career sites",
+      "attribution": "Company career sites",
       "home": null
     },
     "remoteok": {
       "ok": true,
       "n_scanned": 97,
       "n_kept": 0,
-      "seconds": 0.7,
+      "seconds": 0.9,
       "publishable": true,
       "attribution": "Remote OK",
       "home": "https://remoteok.com"
