@@ -1,22 +1,22 @@
 {
-  "fetched_at": "2026-11-16T08:54:37Z",
-  "n_offers": 95,
-  "n_duplicates_removed": 4,
+  "fetched_at": "2026-11-23T18:58:48Z",
+  "n_offers": 76,
+  "n_duplicates_removed": 6,
   "sources": {
     "arbeitnow": {
       "ok": true,
-      "n_scanned": 2514,
-      "n_kept": 78,
-      "seconds": 11.9,
+      "n_scanned": 2760,
+      "n_kept": 66,
+      "seconds": 12.7,
       "publishable": true,
       "attribution": "Arbeitnow",
       "home": "https://www.arbeitnow.com"
     },
     "remotive": {
       "ok": true,
-      "n_scanned": 32,
+      "n_scanned": 30,
       "n_kept": 0,
-      "seconds": 0.1,
+      "seconds": 0.3,
       "publishable": false,
       "attribution": "Remotive",
       "home": "https://remotive.com"
@@ -24,26 +24,26 @@
     "jobicy": {
       "ok": true,
       "n_scanned": 300,
-      "n_kept": 1,
-      "seconds": 4.0,
+      "n_kept": 0,
+      "seconds": 4.5,
       "publishable": true,
       "attribution": "Jobicy",
       "home": "https://jobicy.com"
     },
     "company_boards": {
       "ok": true,
-      "n_scanned": 1015,
-      "n_kept": 20,
-      "seconds": 9.0,
+      "n_scanned": 1013,
+      "n_kept": 16,
+      "seconds": 10.3,
       "publishable": true,
       "attribution": "Company career sites",
       "home": null
     },
     "remoteok": {
       "ok": true,
-      "n_scanned": 97,
+      "n_scanned": 100,
       "n_kept": 0,
-      "seconds": 0.9,
+      "seconds": 0.6,
       "publishable": true,
       "attribution": "Remote OK",
       "home": "https://remoteok.com"
